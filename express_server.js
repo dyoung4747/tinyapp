@@ -25,13 +25,18 @@ app.post("/urls", (req, res) => {
   // res.send(shortURL);
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`urls/${shortURL}`);
-  console.log(urlDatabase);
+});
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log(req.params.shortURL)
+  if (req.params.shortURL) {
+    delete urlDatabase[req.params.shortURL]
+  }
+  res.redirect("/urls");
 });
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 app.get("/urls/:shortURL", (req, res) => { 
-  console.log(urlDatabase[req.params.shortURL])
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
