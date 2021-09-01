@@ -8,6 +8,19 @@ app.use(cookies());
 
 app.set("view engine", "ejs");
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -17,6 +30,20 @@ const generateRandomString = function() {
   return (Math.random() + 1).toString(36).substr(6);
 };
 
+app.post("/registration", (req, res) => {
+  console.log(req.body)
+  const user = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  users[user] = {
+    "id": user,
+    "email": email,
+    "password": password
+  };
+  res.cookie("user-id", user);
+  console.log(users);
+  res.redirect("/urls");
+});
 app.get("/urls", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
