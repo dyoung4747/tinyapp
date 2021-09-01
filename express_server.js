@@ -24,6 +24,13 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 });
+app.get("/registration", (req, res) => {
+  console.log(req.params)
+  const templateVars = { 
+    username: req.cookies["username"]
+  };
+  res.render("user_registration", templateVars);
+});
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
@@ -76,8 +83,6 @@ app.get("/", (req, res) => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
-
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
