@@ -23,6 +23,10 @@ const users = {
 };
 
 const urlDatabase = {
+  dganq8: {
+    longURL: "http://www.nhl.com",
+    userID: "pgfjczh"
+  }
 };
 
 const generateRandomString = function() {
@@ -50,7 +54,7 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     userID: users[req.cookies["userID"]]
   };
-  console.log(templateVars)
+  console.log(urlDatabase)
   res.render("urls_index", templateVars);
 });
 app.get("/registration", (req, res) => {
@@ -68,8 +72,13 @@ app.get("/login", (req, res) => {
 });
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  const longURL = req.body.longURL;
+  console.log(longURL)
+  const userID = req.cookies;
+  urlDatabase[shortURL] = { "longURL": longURL, "userID": userID.userID }
   res.redirect(`urls/${shortURL}`);
+  console.log(urlDatabase)
+
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.params.shortURL) {
@@ -96,25 +105,34 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 app.get("/urls/new", (req, res) => {
+  if (!users[req.cookies["userID"]]) {
+    res.redirect("/login")
+    return;
+  };
   const templateVars = { 
     userID: users[req.cookies["userID"]]
   };
   res.render("urls_new", templateVars);
 });
-app.get("/urls/:shortURL", (req, res) => { 
+app.get("/urls/:shortURL", (req, res) => {
+  const url = urlDatabase[req.params.shortURL];
+  if (!url) {
+    return res.send("Error, check your shortened URL");
+  }
   const templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: url["longURL"],
     userID: users[req.cookies["userID"]]
   };
   res.render("urls_show", templateVars);
 });
+
 app.get("/u/:shortURL", (req, res) => { 
-  const longURL = urlDatabase[req.params.shortURL];
-  if (!longURL) {
+  const url = urlDatabase[req.params.shortURL];
+  if (!url) {
     return res.send("Error, check your shortened URL");
-  };
-  res.redirect(longURL);
+  }
+  res.redirect(url["longURL"]);
 });
 app.post("/logout", (req, res) => {
   res.clearCookie("userID");
