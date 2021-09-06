@@ -1,6 +1,6 @@
-const users = {};
+// const users = {}; // users variable needs to come from express_server.js
 
-const getUserID = (email) => {
+const getUserID = (email, users) => {
   for (const id in users) {
     const user = users[id];
     if (user.email === email) {
@@ -10,7 +10,7 @@ const getUserID = (email) => {
   return null;
 };
 
-const getUserEmail = (email) => {
+const getUserEmail = (email, users) => {
   for (const id in users) {
     const user = users[id];
     if (user.email === email) {
@@ -20,7 +20,7 @@ const getUserEmail = (email) => {
   return null;
 };
 
-const getUserPassword = (email) => {
+const getUserPassword = (email, users) => {
   for (const id in users) {
     const user = users[id];
     if (user.email === email) {

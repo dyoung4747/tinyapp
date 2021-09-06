@@ -1,5 +1,6 @@
 const express = require('express');
 const cookies = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 const bodyParser = require('body-parser');
@@ -51,10 +52,11 @@ app.post("/registration", (req, res) => {
   } else if (getUserID(email)) {
     res.status(400).send("An account already exists under this email. Try again.");
   };
+  const hashedPassword = bcrypt.hashSync(password, 10);
   users[user] = {
     "id": user,
     "email": email,
-    "password": password
+    "password": hashedPassword
   };
   res.cookie("userID", user);
   res.redirect("/urls");
@@ -91,8 +93,6 @@ app.post("/urls", (req, res) => {
   res.redirect(`urls/${shortURL}`);
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
-  // console.log(req)
-
   console.log("cookie userID", req.cookies["userID"])
   const url = urlDatabase[req.params.shortURL];
   if (req.cookies["userID"] !== url["userID"]) {
@@ -114,12 +114,13 @@ app.post("/urls/:id", (req, res) => {
 });
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const userEmail = getUserEmail(email);
-  const userPassword = getUserPassword(email);
-  const userID = getUserID(email);
+  const userEmail = getUserEmail(email, users);
+  const userPassword = getUserPassword(email, users);
+  const userID = getUserID(email, users);
+  console.log("users", users)
   if (!userEmail) {
     res.status(403).send(`No account exists under email: ${email}`);
-  } else if (email === userEmail && password !== userPassword) {
+  } else if (email === userEmail && !bcrypt.compareSync(password, userPassword)) {
     res.status(403).send(`Password incorrect. Try again.`);
   };
   res.cookie("userID", userID);
