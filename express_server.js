@@ -29,6 +29,16 @@ const urlDatabase = {
   }
 };
 
+const urlsForUser = function(id) {
+  const urls = {};
+  for (const shortURL in urlDatabase) {
+  	if (urlDatabase[shortURL]["userID"] === id) {
+    	urls[shortURL] = { "longURL": urlDatabase[shortURL]["longURL"], "userID": id };
+    }
+  }
+  return urls;
+};
+
 const generateRandomString = function() {
   return (Math.random() + 1).toString(36).substr(6);
 };
@@ -50,12 +60,15 @@ app.post("/registration", (req, res) => {
   res.redirect("/urls");
 });
 app.get("/urls", (req, res) => {
+  if (users[req.cookies["userID"]]) {
   const templateVars = { 
-    urls: urlDatabase,
+    urls: urlsForUser(users[req.cookies["userID"]]["id"]),
     userID: users[req.cookies["userID"]]
   };
-  console.log(urlDatabase)
   res.render("urls_index", templateVars);
+  } else {
+    return res.status(401).send('Please log in <a href="/login">here</a> or <a href="/registration">create an account</a>')
+  }
 });
 app.get("/registration", (req, res) => {
   const templateVars = { 
@@ -73,22 +86,30 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  console.log(longURL)
   const userID = req.cookies;
   urlDatabase[shortURL] = { "longURL": longURL, "userID": userID.userID }
   res.redirect(`urls/${shortURL}`);
-  console.log(urlDatabase)
-
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
+  // console.log(req)
+
+  console.log("cookie userID", req.cookies["userID"])
+  const url = urlDatabase[req.params.shortURL];
+  if (req.cookies["userID"] !== url["userID"]) {
+    res.redirect("/urls")
+    return;
+  }
   if (req.params.shortURL) {
     delete urlDatabase[req.params.shortURL]
   }
+  console.log(urlDatabase);
   res.redirect("/urls");
 });
 app.post("/urls/:id", (req, res) => {
   const longNewURL = req.body.longURL;
-  urlDatabase[req.params.id] = longNewURL;
+  const userID = req.cookies;
+  urlDatabase[req.params.id] = { "longURL": longNewURL, "userID": userID.userID };
+  urlsForUser(userID.userID);
   res.redirect("/urls");
 });
 app.post("/login", (req, res) => {
@@ -119,12 +140,16 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!url) {
     return res.send("Error, check your shortened URL");
   }
+  if (url["userID"] !== req.cookies["userID"]) {
+    res.send('Error, not supposed to be here. Please <a href="/registration">register</a> or <a href="/login">login</a>');
+  } else {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: url["longURL"],
     userID: users[req.cookies["userID"]]
   };
   res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => { 

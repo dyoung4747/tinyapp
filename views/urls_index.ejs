@@ -20,17 +20,21 @@
         </tr>
       </thead>
       <tbody>
-        <% for(let url in urls) { %>
-          <tr>
-            <td><%= url %></td>
-            <td><%= urls[url]["longURL"] %></td>
-            <td><form method="POST" action="/urls/<%= url %>/delete">
-              <button type="submit">Delete</button>
-            </form></td>
-            <td><form method="GET" action="/urls/<%= url %>">
-              <button type="submit">Edit</button>
-            </form></td>
-          </tr>
+        <% if (!userID) { %>
+          <td>Please log in <a href="/login">here</a> or <a href="/login">create an account</a></td>
+        <% } else { %>
+          <% for(let url in urls) { %>
+            <tr>
+              <td><%= url %></td>
+              <td><%= urls[url]["longURL"] %></td>
+              <td><form method="POST" action="/urls/<%= url %>/delete">
+                <button type="submit">Delete</button>
+              </form></td>
+              <td><form method="GET" action="/urls/<%= url %>">
+                <button type="submit">Edit</button>
+              </form></td>
+            </tr>
+            <% } %>
         <% } %>
       </tbody>
     </table>
