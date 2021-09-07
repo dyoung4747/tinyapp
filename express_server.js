@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 const bodyParser = require('body-parser');
-const { getUserID, getUserEmail, getUserPassword } = require('./helper_funcs');
+const { getUserID, getUserEmail, getUserPassword, getUserByEmail } = require('./helper_funcs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
@@ -81,9 +81,10 @@ app.post("/urls", (req, res) => {
 app.post("/registration", (req, res) => {
   const user = generateRandomString();
   const { email, password } = req.body;
+  console.log(email)
   if (email === "" || password === "") {
     res.status(400).send("Email or password was left blank. Try again.");
-  } else if (getUserID(email)) {
+  } else if (getUserEmail(email, users)) {
     res.status(400).send("An account already exists under this email. Try again.");
   };
   const hashedPassword = bcrypt.hashSync(password, 10);
