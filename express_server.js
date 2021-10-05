@@ -98,7 +98,7 @@ app.post("/registration", (req, res) => {
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
   const url = urlDatabase[req.params.shortURL];
-  if (req.session.userID !== url["userID"]) {
+  if (!req.session || req.session.userID !== url["userID"]) {
     res.redirect("/urls")
     return;
   }
@@ -109,6 +109,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 app.post("/urls/:id", (req, res) => {
+  if (!req.session || req.session.userID !== url["userID"]) {
+    res.redirect("/urls")
+    return;
+  }
   const longNewURL = req.body.longURL;
   const userID = req.session.userID;
   urlDatabase[req.params.id] = { "longURL": longNewURL, "userID": userID };
@@ -166,7 +170,7 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 app.get("/", (req, res) => {
-  res.send('Hello!');
+  res.redirect("/urls");
 });
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
