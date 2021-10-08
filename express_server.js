@@ -58,12 +58,14 @@ app.get("/urls", (req, res) => {
     return res.status(401).send('Please log in <a href="/login">here</a> or <a href="/registration">create an account</a>')
   }
 });
+
 app.get("/registration", (req, res) => {
   const templateVars = { 
     userID: users[req.session.userID]
   };
   res.render("user_registration", templateVars);
 });
+
 app.get("/login", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
@@ -71,6 +73,8 @@ app.get("/login", (req, res) => {
   };
   res.render("user_login", templateVars);
 });
+
+// add new shortURL to database for user, redirect to shortURL
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
@@ -78,6 +82,8 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = { "longURL": longURL, "userID": userID }
   res.redirect(`urls/${shortURL}`);
 });
+
+// generate randomID, check if email matches password, pass errors if not, else create user
 app.post("/registration", (req, res) => {
   const user = generateRandomString();
   const { email, password } = req.body;
@@ -96,6 +102,8 @@ app.post("/registration", (req, res) => {
   req.session.userID = user;
   res.redirect("/urls");
 });
+
+// if logged out or cookie userID doesn't match redirect to /urls else delete url from database
 app.post("/urls/:shortURL/delete", (req, res) => {
   const url = urlDatabase[req.params.shortURL];
   if (!req.session || req.session.userID !== url["userID"]) {
@@ -108,7 +116,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   console.log(urlDatabase);
   res.redirect("/urls");
 });
+
+// if logged out or cookie userID doesn't match redirect to /urls ELSE allow editing of shortURL
 app.post("/urls/:id", (req, res) => {
+  const url = urlDatabase[req.params.id];
   if (!req.session || req.session.userID !== url["userID"]) {
     res.redirect("/urls")
     return;
@@ -119,6 +130,8 @@ app.post("/urls/:id", (req, res) => {
   urlsForUser(userID);
   res.redirect("/urls");
 });
+
+// loging if email exists and encrypted passwords match
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const userEmail = getUserEmail(email, users);
@@ -132,6 +145,8 @@ app.post("/login", (req, res) => {
   req.session.userID = userID;
   res.redirect("/urls");
 });
+
+// if not logged in redirect to login, if user is logged in render templateVars
 app.get("/urls/new", (req, res) => {
   if (!users[req.session.userID]) {
     res.redirect("/login")
@@ -142,6 +157,8 @@ app.get("/urls/new", (req, res) => {
   };
   res.render("urls_new", templateVars);
 });
+
+// check if url exists/belongs to user, if true render templateVars
 app.get("/urls/:shortURL", (req, res) => {
   const url = urlDatabase[req.params.shortURL];
   if (!url) {
@@ -158,6 +175,8 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
   }
 });
+
+// if url doesn't exist send error
 app.get("/u/:shortURL", (req, res) => { 
   const url = urlDatabase[req.params.shortURL];
   if (!url) {
@@ -165,16 +184,21 @@ app.get("/u/:shortURL", (req, res) => {
   }
   res.redirect(url["longURL"]);
 });
+
+// clear cookies and logout
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
+
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
